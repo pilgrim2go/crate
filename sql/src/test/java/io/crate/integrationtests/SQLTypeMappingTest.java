@@ -26,7 +26,6 @@ import io.crate.action.sql.SQLAction;
 import io.crate.action.sql.SQLActionException;
 import io.crate.action.sql.SQLRequest;
 import io.crate.action.sql.SQLResponse;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.TestingHelpers;
 import org.elasticsearch.client.Client;
 import org.junit.Rule;
@@ -39,7 +38,6 @@ import java.util.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
 public class SQLTypeMappingTest extends SQLTransportIntegrationTest {
 
     @Rule
@@ -327,9 +325,8 @@ public class SQLTypeMappingTest extends SQLTransportIntegrationTest {
                 }}
         });
         refresh();
-        waitNoPendingTasksOnAll();
 
-        SQLResponse response = execute("select id, new_col from t1 where id=0");
+        SQLResponse response = executeWithRetryOnUnknownColumn("select id, new_col from t1 where id=0");
         @SuppressWarnings("unchecked")
         Map<String, Object> mapped = (Map<String, Object>)response.rows()[0][1];
         assertEquals(0, mapped.get("a_date"));

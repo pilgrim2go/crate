@@ -21,12 +21,10 @@
 
 package io.crate.integrationtests;
 
-import io.crate.test.integration.CrateIntegrationTest;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
 public class LuceneQueryBuilderIntegrationTest extends SQLTransportIntegrationTest {
 
     @Test

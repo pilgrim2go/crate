@@ -25,7 +25,6 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import io.crate.action.sql.*;
 import io.crate.action.sql.parser.SQLXContentSourceContext;
 import io.crate.action.sql.parser.SQLXContentSourceParser;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.SQLTransportExecutor;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateRequest;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
@@ -41,21 +40,18 @@ import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
 
 import java.io.IOException;
 import java.util.Map;
 
-public abstract class SQLTransportIntegrationTest extends CrateIntegrationTest {
-
-    static {
-        ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
-    }
+public abstract class SQLTransportIntegrationTest extends ElasticsearchIntegrationTest {
 
     protected SQLTransportExecutor sqlExecutor = new SQLTransportExecutor(
         new SQLTransportExecutor.ClientProvider() {
             @Override
             public Client client() {
-                return CrateIntegrationTest.client();
+                return ElasticsearchIntegrationTest.client();
             }
         }
     );
@@ -95,6 +91,11 @@ public abstract class SQLTransportIntegrationTest extends CrateIntegrationTest {
                 lastException = e;
                 String message = e.getMessage();
                 if (message.startsWith("Column") && message.endsWith("unknown")) {
+                    try {
+                        Thread.sleep(retry * 10);
+                    } catch (InterruptedException e1) {
+                        // ignore
+                    }
                     retry++;
                 } else {
                     throw e;
@@ -122,8 +123,7 @@ public abstract class SQLTransportIntegrationTest extends CrateIntegrationTest {
      * @return the SQLResponse
      */
     public SQLResponse execute(String stmt) {
-        response = sqlExecutor.exec(stmt, new Object[0]);
-        return response;
+        return execute(stmt, new Object[0]);
     }
 
     /**

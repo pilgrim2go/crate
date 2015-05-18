@@ -26,7 +26,6 @@ import io.crate.analyze.WhereClause;
 import io.crate.integrationtests.SQLTransportIntegrationTest;
 import io.crate.metadata.doc.DocTableInfo;
 import io.crate.metadata.table.TableInfo;
-import io.crate.test.integration.CrateIntegrationTest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,14 +36,13 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.hamcrest.core.Is.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
 public class ReferenceInfosITest extends SQLTransportIntegrationTest {
 
     private ReferenceInfos referenceInfos;
 
     @Before
     public void setUpService() {
-        referenceInfos = cluster().getInstance(ReferenceInfos.class);
+        referenceInfos = internalCluster().getInstance(ReferenceInfos.class);
     }
 
     @Test

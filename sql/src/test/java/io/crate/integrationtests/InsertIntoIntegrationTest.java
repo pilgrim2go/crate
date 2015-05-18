@@ -23,9 +23,9 @@ package io.crate.integrationtests;
 
 import io.crate.action.sql.SQLActionException;
 import io.crate.action.sql.SQLBulkResponse;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.TestingHelpers;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.hamcrest.core.IsNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +37,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
+@ElasticsearchIntegrationTest.ClusterScope(numDataNodes = 2)
 public class InsertIntoIntegrationTest extends SQLTransportIntegrationTest {
 
     static {
@@ -647,7 +647,7 @@ public class InsertIntoIntegrationTest extends SQLTransportIntegrationTest {
                 "  name string, " +
                 "  zipcode string, " +
                 "  city string" +
-                ") partitioned by (city) with (number_of_replicas=0)");
+                ") clustered into 5 shards partitioned by (city) with (number_of_replicas=0)");
         execute("create table custom.destination (" +
                 "  name string, " +
                 "  zipcode string, " +

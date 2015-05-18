@@ -22,7 +22,6 @@
 package io.crate.integrationtests;
 
 import io.crate.metadata.settings.CrateSettings;
-import io.crate.test.integration.CrateIntegrationTest;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.junit.Test;
@@ -31,7 +30,6 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.TEST)
 public class SysClusterSettingsTest extends SQLTransportIntegrationTest {
 
     @Override
@@ -104,7 +102,7 @@ public class SysClusterSettingsTest extends SQLTransportIntegrationTest {
         assertEquals(2, stats.get(CrateSettings.STATS_OPERATIONS_LOG_SIZE.name()));
         assertEquals(false, stats.get(CrateSettings.STATS_ENABLED.name()));
 
-        cluster().fullRestart();
+        internalCluster().fullRestart();
 
         execute("select settings from sys.cluster");
         assertEquals(1L, response.rowCount());
@@ -132,7 +130,7 @@ public class SysClusterSettingsTest extends SQLTransportIntegrationTest {
         assertEquals("1s", bulk.get(CrateSettings.BULK_REQUEST_TIMEOUT.name()));
         assertEquals("2s", bulk.get(CrateSettings.BULK_PARTITION_CREATION_TIMEOUT.name()));
 
-        cluster().fullRestart();
+        internalCluster().fullRestart();
 
         execute("select settings from sys.cluster");
         assertEquals(1L, response.rowCount());

@@ -38,7 +38,6 @@ import io.crate.planner.symbol.Function;
 import io.crate.planner.symbol.Literal;
 import io.crate.planner.symbol.Reference;
 import io.crate.planner.symbol.Symbol;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.TestingHelpers;
 import io.crate.types.DataType;
 import io.crate.types.DataTypes;
@@ -50,7 +49,6 @@ import java.util.*;
 
 import static org.hamcrest.core.Is.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
 public class HandlerSideLevelCollectTest extends SQLTransportIntegrationTest {
 
     static {
@@ -63,8 +61,8 @@ public class HandlerSideLevelCollectTest extends SQLTransportIntegrationTest {
 
     @Before
     public void prepare() {
-        operation = cluster().getInstance(HandlerSideDataCollectOperation.class);
-        functions = cluster().getInstance(Functions.class);
+        operation = internalCluster().getInstance(HandlerSideDataCollectOperation.class);
+        functions = internalCluster().getInstance(Functions.class);
     }
 
     @Test
@@ -94,7 +92,7 @@ public class HandlerSideLevelCollectTest extends SQLTransportIntegrationTest {
         ).map());
         CollectNode collectNode = new CollectNode(0, "tablesCollect", routing);
 
-        InformationSchemaInfo schemaInfo =  cluster().getInstance(InformationSchemaInfo.class);
+        InformationSchemaInfo schemaInfo =  internalCluster().getInstance(InformationSchemaInfo.class);
         TableInfo tablesTableInfo = schemaInfo.getTableInfo("tables");
         List<Symbol> toCollect = new ArrayList<>();
         for (ReferenceInfo info : tablesTableInfo.columns()) {
@@ -123,7 +121,7 @@ public class HandlerSideLevelCollectTest extends SQLTransportIntegrationTest {
         ).map());
         CollectNode collectNode = new CollectNode(0, "columnsCollect", routing);
 
-        InformationSchemaInfo schemaInfo =  cluster().getInstance(InformationSchemaInfo.class);
+        InformationSchemaInfo schemaInfo =  internalCluster().getInstance(InformationSchemaInfo.class);
         TableInfo tableInfo = schemaInfo.getTableInfo("columns");
         List<Symbol> toCollect = new ArrayList<>();
         for (ReferenceInfo info : tableInfo.columns()) {

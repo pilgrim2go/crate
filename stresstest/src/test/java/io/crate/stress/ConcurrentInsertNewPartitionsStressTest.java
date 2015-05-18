@@ -24,7 +24,6 @@ package io.crate.stress;
 import io.crate.TimestampFormat;
 import io.crate.action.sql.SQLBulkResponse;
 import io.crate.concurrent.Threaded;
-import io.crate.test.integration.CrateIntegrationTest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 

@@ -26,8 +26,8 @@ import io.crate.action.sql.SQLBulkRequest;
 import io.crate.action.sql.SQLBulkResponse;
 import io.crate.action.sql.SQLRequest;
 import io.crate.action.sql.SQLResponse;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.TestingHelpers;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -38,7 +38,7 @@ import java.util.HashMap;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.SUITE, numNodes = 1)
+@ElasticsearchIntegrationTest.ClusterScope(scope = ElasticsearchIntegrationTest.Scope.SUITE, numDataNodes = 1)
 public class TransportSQLActionSingleNodeTest extends SQLTransportIntegrationTest {
 
     static {

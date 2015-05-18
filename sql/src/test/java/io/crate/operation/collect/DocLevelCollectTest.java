@@ -41,12 +41,12 @@ import io.crate.planner.symbol.Function;
 import io.crate.planner.symbol.Literal;
 import io.crate.planner.symbol.Reference;
 import io.crate.planner.symbol.Symbol;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.types.DataType;
 import io.crate.types.DataTypes;
 import org.elasticsearch.cluster.routing.ShardRouting;
 import org.elasticsearch.common.breaker.CircuitBreaker;
 import org.elasticsearch.common.breaker.NoopCircuitBreaker;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,7 +58,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.SUITE, numNodes = 1)
+@ElasticsearchIntegrationTest.ClusterScope(scope = ElasticsearchIntegrationTest.Scope.SUITE, numDataNodes = 1)
 public class DocLevelCollectTest extends SQLTransportIntegrationTest {
 
     private static final RamAccountingContext RAM_ACCOUNTING_CONTEXT =
@@ -95,9 +95,9 @@ public class DocLevelCollectTest extends SQLTransportIntegrationTest {
 
     @Before
     public void prepare() {
-        operation = cluster().getInstance(MapSideDataCollectOperation.class);
-        functions = cluster().getInstance(Functions.class);
-        docSchemaInfo = cluster().getInstance(DocSchemaInfo.class);
+        operation = internalCluster().getInstance(MapSideDataCollectOperation.class);
+        functions = internalCluster().getInstance(Functions.class);
+        docSchemaInfo = internalCluster().getInstance(DocSchemaInfo.class);
 
         execute(String.format(Locale.ENGLISH, "create table %s (" +
                 "  id integer," +
@@ -215,8 +215,8 @@ public class DocLevelCollectTest extends SQLTransportIntegrationTest {
 
     private Bucket collect(CollectNode collectNode) throws InterruptedException, java.util.concurrent.ExecutionException {
         CollectingProjector cd = new CollectingProjector();
-        ContextPreparer contextPreparer = cluster().getInstance(ContextPreparer.class);
-        JobContextService contextService = cluster().getInstance(JobContextService.class);
+        ContextPreparer contextPreparer = internalCluster().getInstance(ContextPreparer.class);
+        JobContextService contextService = internalCluster().getInstance(JobContextService.class);
         JobExecutionContext.Builder builder = contextService.newBuilder(collectNode.jobId());
         contextPreparer.prepare(collectNode.jobId(), collectNode, builder);
         contextService.createContext(builder);

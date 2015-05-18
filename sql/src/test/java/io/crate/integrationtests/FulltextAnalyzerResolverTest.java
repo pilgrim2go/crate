@@ -52,7 +52,7 @@ public class FulltextAnalyzerResolverTest extends SQLTransportIntegrationTest {
 
     @Before
     public void AnalyzerServiceSetup() {
-        fulltextAnalyzerResolver = cluster().getInstance(FulltextAnalyzerResolver.class);
+        fulltextAnalyzerResolver = internalCluster().getInstance(FulltextAnalyzerResolver.class);
     }
 
     @AfterClass

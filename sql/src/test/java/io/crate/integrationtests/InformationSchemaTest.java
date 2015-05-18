@@ -26,9 +26,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.crate.action.sql.SQLAction;
 import io.crate.action.sql.SQLRequest;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.TestingHelpers;
 import org.elasticsearch.common.collect.MapBuilder;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +40,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.*;
 
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.SUITE)
+@ElasticsearchIntegrationTest.ClusterScope(numDataNodes = 2)
 public class InformationSchemaTest extends SQLTransportIntegrationTest {
 
     final static Joiner dotJoiner = Joiner.on('.');
@@ -344,6 +344,10 @@ public class InformationSchemaTest extends SQLTransportIntegrationTest {
                     ImmutableSet.of("crate.analysis.custom.analyzer.myanalyzer",
                             "crate.analysis.custom.analyzer.myotheranalyzer",
                             "crate.analysis.custom.filter.myanalyzer_mytokenfilter"))
+                .setTransientSettingsToRemove(
+                        ImmutableSet.of("crate.analysis.custom.analyzer.myanalyzer",
+                                "crate.analysis.custom.analyzer.myotheranalyzer",
+                                "crate.analysis.custom.filter.myanalyzer_mytokenfilter"))
                 .execute().actionGet();
     }
 
@@ -788,7 +792,9 @@ public class InformationSchemaTest extends SQLTransportIntegrationTest {
 
     @Test
     public void testTablePartitions() throws Exception {
-        execute("create table my_table (par int, content string) partitioned by (par)");
+        execute("create table my_table (par int, content string) " +
+                "clustered into 5 shards " +
+                "partitioned by (par)");
         execute("insert into my_table (par, content) values (1, 'content1')");
         execute("insert into my_table (par, content) values (1, 'content2')");
         execute("insert into my_table (par, content) values (2, 'content3')");

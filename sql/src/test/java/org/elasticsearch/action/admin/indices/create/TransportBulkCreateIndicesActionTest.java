@@ -22,7 +22,7 @@
 package org.elasticsearch.action.admin.indices.create;
 
 import com.google.common.collect.ImmutableList;
-import io.crate.test.integration.CrateIntegrationTest;
+import io.crate.integrationtests.SQLTransportIntegrationTest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.indices.InvalidIndexNameException;
@@ -36,8 +36,8 @@ import java.util.Arrays;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
-public class TransportBulkCreateIndicesActionTest extends CrateIntegrationTest {
+public class TransportBulkCreateIndicesActionTest extends SQLTransportIntegrationTest {
+
     TransportBulkCreateIndicesAction action;
 
     @Rule
@@ -45,7 +45,7 @@ public class TransportBulkCreateIndicesActionTest extends CrateIntegrationTest {
 
     @Before
     public void prepare() {
-        action = cluster().getInstance(TransportBulkCreateIndicesAction.class);
+        action = internalCluster().getInstance(TransportBulkCreateIndicesAction.class);
     }
 
     @Test

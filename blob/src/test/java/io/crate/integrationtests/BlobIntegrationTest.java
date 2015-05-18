@@ -2,7 +2,6 @@ package io.crate.integrationtests;
 
 
 import io.crate.rest.CrateRestFilter;
-import io.crate.test.integration.CrateIntegrationTest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -13,12 +12,13 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Locale;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.SUITE, numNodes = 2)
+@ElasticsearchIntegrationTest.ClusterScope(scope = ElasticsearchIntegrationTest.Scope.SUITE, numDataNodes = 2)
 public class BlobIntegrationTest extends BlobHttpIntegrationTest {
 
     @Override

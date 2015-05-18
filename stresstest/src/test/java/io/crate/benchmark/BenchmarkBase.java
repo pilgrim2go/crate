@@ -22,7 +22,6 @@
 package io.crate.benchmark;
 
 import io.crate.action.sql.*;
-import io.crate.test.integration.CrateTestCluster;
 import io.crate.test.integration.NodeSettingsSource;
 import io.crate.test.integration.PathAccessor;
 import io.crate.testing.SQLTransportExecutor;

@@ -38,15 +38,12 @@ import io.crate.planner.node.ddl.CreateTableNode;
 import io.crate.planner.node.ddl.ESClusterUpdateSettingsNode;
 import io.crate.planner.node.ddl.ESCreateTemplateNode;
 import io.crate.planner.node.ddl.ESDeleteIndexNode;
-import io.crate.test.integration.CrateIntegrationTest;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.action.admin.indices.alias.Alias;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.template.get.GetIndexTemplatesResponse;
 import org.elasticsearch.cluster.metadata.IndexTemplateMetaData;
-import org.elasticsearch.cluster.settings.ClusterDynamicSettings;
 import org.elasticsearch.cluster.settings.DynamicSettings;
-import org.elasticsearch.common.inject.Key;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.junit.Before;
@@ -61,7 +58,6 @@ import static org.elasticsearch.common.settings.ImmutableSettings.Builder.EMPTY_
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
 public class TransportExecutorDDLTest extends SQLTransportIntegrationTest {
 
     static {
@@ -110,7 +106,7 @@ public class TransportExecutorDDLTest extends SQLTransportIntegrationTest {
 
     @Before
     public void transportSetup() {
-        executor = cluster().getInstance(TransportExecutor.class);
+        executor = internalCluster().getInstance(TransportExecutor.class);
     }
 
     @Test
@@ -256,9 +252,12 @@ public class TransportExecutorDDLTest extends SQLTransportIntegrationTest {
         // allow our settings to be updated (at all nodes)
         DynamicSettings dynamicSettings;
         for (int i = 0; i < cluster().size(); i++) {
-            dynamicSettings = cluster().getInstance(Key.get(DynamicSettings.class, ClusterDynamicSettings.class), "node_" + i);
+            /*
+            // TODO:
+            dynamicSettings = internalCluster().getInstance(Key.get(DynamicSettings.class, ClusterDynamicSettings.class), "node_" + i);
             dynamicSettings.addDynamicSetting(persistentSetting);
             dynamicSettings.addDynamicSetting(transientSetting);
+            */
         }
 
         // Update persistent only

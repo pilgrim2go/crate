@@ -23,7 +23,6 @@ package io.crate.client;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.crate.action.sql.*;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.types.DataType;
 import io.crate.types.StringType;
 import org.elasticsearch.action.ActionListener;

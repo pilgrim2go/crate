@@ -23,13 +23,13 @@ package io.crate.integrationtests;
 
 import io.crate.blob.BlobEnvironment;
 import io.crate.blob.v2.BlobIndices;
-import io.crate.test.integration.CrateIntegrationTest;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.common.io.FileSystemUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.index.shard.ShardId;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,8 +40,7 @@ import java.nio.file.Files;
 
 import static org.hamcrest.CoreMatchers.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.TEST, numNodes = 2)
-public class CustomBlobPathTest extends CrateIntegrationTest {
+public class CustomBlobPathTest extends ElasticsearchIntegrationTest {
 
     private static File globalBlobPath;
 
@@ -64,9 +63,9 @@ public class CustomBlobPathTest extends CrateIntegrationTest {
 
     @Test
     public void testGlobalBlobPath() throws Exception {
-        BlobIndices blobIndices = cluster().getInstance(BlobIndices.class, "node_0");
-        BlobEnvironment blobEnvironment = cluster().getInstance(BlobEnvironment.class, "node_0");
-        BlobEnvironment blobEnvironment2 = cluster().getInstance(BlobEnvironment.class, "node_1");
+        BlobIndices blobIndices = internalCluster().getInstance(BlobIndices.class, "node_0");
+        BlobEnvironment blobEnvironment = internalCluster().getInstance(BlobEnvironment.class, "node_0");
+        BlobEnvironment blobEnvironment2 = internalCluster().getInstance(BlobEnvironment.class, "node_1");
         assertThat(blobEnvironment.blobsPath().getAbsolutePath(), is(globalBlobPath.getAbsolutePath()));
 
         Settings indexSettings = ImmutableSettings.builder()
@@ -90,9 +89,9 @@ public class CustomBlobPathTest extends CrateIntegrationTest {
 
     @Test
     public void testPerTableBlobPath() throws Exception {
-        BlobIndices blobIndices = cluster().getInstance(BlobIndices.class, "node_0");
-        BlobEnvironment blobEnvironment = cluster().getInstance(BlobEnvironment.class, "node_0");
-        BlobEnvironment blobEnvironment2 = cluster().getInstance(BlobEnvironment.class, "node_1");
+        BlobIndices blobIndices = internalCluster().getInstance(BlobIndices.class, "node_0");
+        BlobEnvironment blobEnvironment = internalCluster().getInstance(BlobEnvironment.class, "node_0");
+        BlobEnvironment blobEnvironment2 = internalCluster().getInstance(BlobEnvironment.class, "node_1");
         assertThat(blobEnvironment.blobsPath().getAbsolutePath(), is(globalBlobPath.getAbsolutePath()));
 
         File tempBlobPath = Files.createTempDirectory(null).toFile();

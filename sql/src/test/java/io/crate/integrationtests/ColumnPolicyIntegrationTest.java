@@ -27,7 +27,6 @@ import io.crate.Constants;
 import io.crate.action.sql.SQLActionException;
 import io.crate.metadata.PartitionName;
 import io.crate.metadata.table.ColumnPolicy;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.TestingHelpers;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.action.admin.indices.template.get.GetIndexTemplatesResponse;
@@ -37,6 +36,8 @@ import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.compress.CompressedString;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
+import org.elasticsearch.test.junit.annotations.TestLogging;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,7 +51,7 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
+@ElasticsearchIntegrationTest.ClusterScope(numDataNodes = 1)
 public class ColumnPolicyIntegrationTest extends SQLTransportIntegrationTest {
 
     static {
@@ -141,9 +142,13 @@ public class ColumnPolicyIntegrationTest extends SQLTransportIntegrationTest {
 
         execute("insert into dynamic_table (id, name, boo) values (2, 'Trillian', true)");
         execute("refresh table dynamic_table");
-        waitNoPendingTasksOnAll();
 
-        execute("select * from dynamic_table order by id");
+        int retry = 0;
+        do {
+            execute("select * from dynamic_table order by id");
+            retry++;
+            Thread.sleep(retry * 10);
+        } while (response.cols().length != 3 && retry < 10);
         assertThat(response.rowCount(), is(2L));
         assertThat(response.cols(), is(arrayContaining("boo", "id", "name")));
         assertThat(TestingHelpers.printedTable(response.rows()), is(
@@ -365,9 +370,13 @@ public class ColumnPolicyIntegrationTest extends SQLTransportIntegrationTest {
 
         execute("update dynamic_table set name='Trillian', good=true where score > 0.0");
         execute("refresh table dynamic_table");
-        waitNoPendingTasksOnAll();
 
-        execute("select * from dynamic_table");
+        int retry = 0;
+        do {
+            execute("select * from dynamic_table");
+            Thread.sleep(retry * 10);
+            retry++;
+        } while (response.cols().length == 3 && retry < 10);
         assertThat(response.rowCount(), is(1L));
         assertThat(response.cols(), is(arrayContaining("good", "id", "name", "score")));
         assertThat(response.rows()[0], is(Matchers.<Object>arrayContaining(true, 1, "Trillian", 4656234.345D)));

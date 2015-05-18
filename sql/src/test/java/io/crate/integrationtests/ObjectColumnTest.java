@@ -22,7 +22,6 @@
 package io.crate.integrationtests;
 
 import io.crate.action.sql.SQLActionException;
-import io.crate.test.integration.CrateIntegrationTest;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -33,7 +32,6 @@ import org.junit.rules.ExpectedException;
 import java.util.HashMap;
 import java.util.Map;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
 public class ObjectColumnTest extends SQLTransportIntegrationTest {
 
     static {
@@ -88,8 +86,7 @@ public class ObjectColumnTest extends SQLTransportIntegrationTest {
                         authorMap
                 });
         refresh();
-        waitNoPendingTasksOnAll();
-        execute("select title, author, author['dead'] from ot order by title");
+        executeWithRetryOnUnknownColumn("select title, author, author['dead'] from ot order by title");
         assertEquals(2, response.rowCount());
         assertEquals("Life, the Universe and Everything", response.rows()[0][0]);
         assertEquals(authorMap, response.rows()[0][1]);
@@ -143,8 +140,8 @@ public class ObjectColumnTest extends SQLTransportIntegrationTest {
         execute("update ot set author['job']='Writer' " +
                 "where author['name']['first_name']='Douglas' and author['name']['last_name']='Adams'");
         refresh();
-        waitNoPendingTasksOnAll(); // wait for author['job']
-        execute("select author, author['job'] from ot where author['name']['first_name']='Douglas' and author['name']['last_name']='Adams'");
+        executeWithRetryOnUnknownColumn("select author, author['job'] from ot " +
+                "where author['name']['first_name']='Douglas' and author['name']['last_name']='Adams'");
         assertEquals(1, response.rowCount());
         assertEquals(
                 new HashMap<String, Object>(){{
@@ -261,8 +258,7 @@ public class ObjectColumnTest extends SQLTransportIntegrationTest {
                 }
         );
         refresh();
-        waitNoPendingTasksOnAll();
-        execute("select title, author['dead'] from ot order by author['dead'] desc");
+        executeWithRetryOnUnknownColumn("select title, author['dead'] from ot order by author['dead'] desc");
         assertEquals(3, response.rowCount());
         assertEquals("The Hitchhiker's Guide to the Galaxy", response.rows()[0][0]);
         assertNull(response.rows()[0][1]);

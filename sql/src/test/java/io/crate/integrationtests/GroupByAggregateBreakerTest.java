@@ -24,7 +24,6 @@ package io.crate.integrationtests;
 import io.crate.action.sql.SQLActionException;
 import io.crate.breaker.CrateCircuitBreakerService;
 import io.crate.breaker.RamAccountingContext;
-import io.crate.test.integration.CrateIntegrationTest;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.hamcrest.Matchers;
@@ -33,7 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.SUITE)
 public class GroupByAggregateBreakerTest extends SQLTransportIntegrationTest {
 
     static {

@@ -24,7 +24,6 @@ package io.crate.integrationtests;
 import io.crate.action.sql.SQLActionException;
 import io.crate.action.sql.SQLBulkResponse;
 import io.crate.analyze.UpdateStatementAnalyzer;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.TestingHelpers;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +38,6 @@ import static io.crate.testing.TestingHelpers.mapToSortedString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.core.Is.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
 public class UpdateIntegrationTest extends SQLTransportIntegrationTest {
 
     static {
@@ -206,14 +204,13 @@ public class UpdateIntegrationTest extends SQLTransportIntegrationTest {
         execute("insert into test values (?)", args);
         assertEquals(1, response.rowCount());
         refresh();
-        waitNoPendingTasksOnAll();
 
         execute("update test set coolness['x'] = '3'");
 
         assertEquals(1, response.rowCount());
         refresh();
 
-        execute("select coolness['x'], coolness['y'] from test");
+        executeWithRetryOnUnknownColumn("select coolness['x'], coolness['y'] from test");
         assertEquals(1, response.rowCount());
         assertEquals("3", response.rows()[0][0]);
         assertEquals(2L, response.rows()[0][1]);

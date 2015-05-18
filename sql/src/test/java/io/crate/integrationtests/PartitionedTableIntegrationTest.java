@@ -27,7 +27,6 @@ import io.crate.Constants;
 import io.crate.action.sql.SQLActionException;
 import io.crate.action.sql.SQLResponse;
 import io.crate.metadata.PartitionName;
-import io.crate.test.integration.CrateIntegrationTest;
 import io.crate.testing.TestingHelpers;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.action.admin.indices.alias.exists.AliasesExistResponse;
@@ -42,6 +41,7 @@ import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
+import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
@@ -60,7 +60,7 @@ import java.util.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 
-@CrateIntegrationTest.ClusterScope(scope = CrateIntegrationTest.Scope.GLOBAL)
+@ElasticsearchIntegrationTest.ClusterScope(numDataNodes = 2)
 public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest {
 
     static {
@@ -237,7 +237,7 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         String partitionName = new PartitionName("parted",
                 Arrays.asList(new BytesRef(String.valueOf(13959981214861L)))
         ).stringValue();
-        assertTrue(cluster().clusterService().state().metaData().hasIndex(partitionName));
+        assertTrue(internalCluster().clusterService().state().metaData().hasIndex(partitionName));
         assertNotNull(client().admin().cluster().prepareState().execute().actionGet()
                 .getState().metaData().indices().get(partitionName).aliases().get("parted"));
         assertThat(
@@ -247,7 +247,7 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         );
 
         partitionName = new PartitionName("parted", Arrays.asList(new BytesRef(String.valueOf(0L)))).stringValue();
-        assertTrue(cluster().clusterService().state().metaData().hasIndex(partitionName));
+        assertTrue(internalCluster().clusterService().state().metaData().hasIndex(partitionName));
         assertNotNull(client().admin().cluster().prepareState().execute().actionGet()
                 .getState().metaData().indices().get(partitionName).aliases().get("parted"));
         assertThat(
@@ -259,7 +259,7 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         List<BytesRef> nullList = new ArrayList<>();
         nullList.add(null);
         partitionName = new PartitionName("parted", nullList).stringValue();
-        assertTrue(cluster().clusterService().state().metaData().hasIndex(partitionName));
+        assertTrue(internalCluster().clusterService().state().metaData().hasIndex(partitionName));
         assertNotNull(client().admin().cluster().prepareState().execute().actionGet()
                 .getState().metaData().indices().get(partitionName).aliases().get("parted"));
         assertThat(
@@ -963,7 +963,7 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
                 .prepareGetTemplates(PartitionName.templateName(null, "quotes")).execute().get();
         assertThat(getIndexTemplatesResponse.getIndexTemplates().size(), is(0));
 
-        assertThat(cluster().clusterService().state().metaData().indices().size(), is(0));
+        assertThat(internalCluster().clusterService().state().metaData().indices().size(), is(0));
 
         AliasesExistResponse aliasesExistResponse = client().admin().indices()
                 .prepareAliasesExist("quotes").execute().get();
@@ -1592,7 +1592,6 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         assertThat(templateSettings.getAsInt(IndexMetaData.SETTING_NUMBER_OF_SHARDS, 0), is(3));
 
         execute("alter table quotes set (number_of_shards=6)");
-        ensureYellow();
 
         templatesResponse = client().admin().indices()
                 .prepareGetTemplates(templateName).execute().actionGet();
@@ -1605,7 +1604,6 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
                 new Object[]{1, "Don't panic", 1395874800000L}
         );
         assertThat(response.rowCount(), is(1L));
-        ensureYellow();
         refresh();
 
         assertTrue(clusterService().state().metaData().aliases().containsKey("quotes"));
@@ -1620,7 +1618,6 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
 
         execute("alter table quotes set (number_of_shards=2)");
         ensureYellow();
-        waitNoPendingTasksOnAll();
 
         execute("insert into quotes (id, quote, date) values (?, ?, ?)",
                 new Object[]{2, "Now panic", 1395961200000L}
@@ -1673,8 +1670,8 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         execute("insert into event (day, data) values ('2015-01-03', {sessionid = null})");
         execute("insert into event (day, data) values ('2015-01-01', {sessionid = 'hello'})");
         execute("refresh table event");
-        waitNoPendingTasksOnAll();
-        execute("select data['sessionid'] from event group by data['sessionid'] order by format('%s', data['sessionid'])");
+        executeWithRetryOnUnknownColumn("select data['sessionid'] from event group by data['sessionid'] " +
+                "order by format('%s', data['sessionid'])");
         assertThat(response.rows().length, Is.is(2));
         assertThat((String)response.rows()[0][0], Is.is("hello"));
         assertThat(response.rows()[1][0], Is.is(nullValue()));
@@ -1688,8 +1685,8 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         execute("insert into event (day, data) values ('2015-01-01', {sessionid = 'hello'})");
         execute("insert into event (day, data) values ('2015-02-08', {sessionid = 'ciao'})");
         execute("refresh table event");
-        waitNoPendingTasksOnAll();
-        execute("select data['sessionid'] from event where format('%s', data['sessionid']) = 'ciao' order by data['sessionid']");
+        executeWithRetryOnUnknownColumn("select data['sessionid'] from event where " +
+                "format('%s', data['sessionid']) = 'ciao' order by data['sessionid']");
         assertThat(response.rows().length, Is.is(1));
         assertThat((String)response.rows()[0][0], Is.is("ciao"));
     }
@@ -1702,8 +1699,7 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         execute("insert into event (day, data, number) values ('2015-01-01', {sessionid = 'hello'}, 42)");
         execute("insert into event (day, data, number) values ('2015-02-08', {sessionid = 'ciao'}, 42)");
         execute("refresh table event");
-        waitNoPendingTasksOnAll();
-        execute("select data['sessionid'] from event order by data['sessionid'] ASC nulls first");
+        executeWithRetryOnUnknownColumn("select data['sessionid'] from event order by data['sessionid'] ASC nulls first");
         assertThat(TestingHelpers.printedTable(response.rows()), is(
                 "NULL\n" +
                 "ciao\n" +
@@ -1768,9 +1764,8 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         execute("insert into event (day) values ('2015-01-03')");
         execute("insert into event (day, sessionid) values ('2015-01-01', 'hello')");
         execute("refresh table event");
-        waitNoPendingTasksOnAll();
 
-        execute("select sessionid from event group by sessionid order by sessionid");
+        executeWithRetryOnUnknownColumn("select sessionid from event group by sessionid order by sessionid");
         assertThat(response.rows().length, Is.is(2));
         assertThat((String)response.rows()[0][0], Is.is("hello"));
         assertThat(response.rows()[1][0], Is.is(nullValue()));
@@ -1781,15 +1776,14 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         execute("SET GLOBAL stats.enabled = true");
         execute("create table t (name string, p string) partitioned by (p) with (number_of_replicas=0)");
         ensureYellow();
-        Object[][] bulkArgs = new Object[100][];
-        for (int i = 0; i < 100; i++) {
+        Object[][] bulkArgs = new Object[20][];
+        for (int i = 0; i < 20; i++) {
             bulkArgs[i] = new Object[]{"Marvin", i};
         }
         execute("insert into t (name, p) values (?, ?)", bulkArgs);
         execute("refresh table t");
-        execute("select * from t");
-        assertThat(response.rowCount(), is(100L));
-        waitNoPendingTasksOnAll();
+        execute("select count(*) from t");
+        assertThat(((long) response.rows()[0][0]), is(20L));
         execute("select count(*), job_id, arbitrary(name) from sys.operations_log where name='fetch' group by 2");
         assertThat(response.rowCount(), is(lessThanOrEqualTo(1L)));
     }
@@ -1806,7 +1800,7 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
         client().admin().indices().prepareDeleteTemplate(templateName).execute().actionGet();
         waitNoPendingTasksOnAll();
         execute("select * from sys.shards where table_name = 'foo'");
-        assertThat(response.rowCount(), CoreMatchers.is(5L));
+        assertThat(response.rowCount(), Matchers.greaterThan(0L));
         execute("drop table foo");
 
         execute("select * from sys.shards where table_name = 'foo'");
@@ -1816,7 +1810,7 @@ public class PartitionedTableIntegrationTest extends SQLTransportIntegrationTest
     @After
     @Override
     public void tearDown() throws Exception {
-        execute("SET GLOBAL stats.enabled = false");
+        execute("RESET GLOBAL stats.enabled");
         super.tearDown();
     }
 }
